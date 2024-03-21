@@ -8,11 +8,10 @@ import numpy as np
 df = pd.read_csv("data/Question_Answer_Dataset_v1.2_S10.csv")
 
 # load question and answer vectors generated from pre-trained word2vec model
-vector = np.load('data/vector.npz')
-ques_vec = vector['x']
-ans_vec = vector['y']
+vector = np.load('vector.npz')
+ques_vec = vector['x'] # Load the array corresponding to the key 'x'
 
-# load the trained word2vec model 
+# load th trained word2vec model 
 trained_w2v = gensim.models.Word2Vec.load("data/w2v.model")
 
 # App title
@@ -45,7 +44,7 @@ def trained_sentence_vec(sent):
     return ave_vec
 
 # Function to find the answer through vector search
-def find_answer(qr_sentence, ques_vec, ans_vec):
+def find_answer(qr_sentence, ques_vec):
     # use one query sentence to retrieve answer
     qr_sentence = gensim.utils.simple_preprocess(qr_sentence)
     qr_sent_vec = trained_sentence_vec(qr_sentence)
@@ -53,13 +52,10 @@ def find_answer(qr_sentence, ques_vec, ans_vec):
     # perform vector search through similarity comparison
     n_dim = ques_vec.shape[1]
     x = np.vstack(ques_vec).astype(np.float32)
-    y = np.vstack(ans_vec).astype(np.float32)
     q = qr_sent_vec.reshape(1, -1)
     index = faiss.index_factory(n_dim, "Flat", faiss.METRIC_INNER_PRODUCT)
     faiss.normalize_L2(x)
     index.add(x)
-    faiss.normalize_L2(y)
-    index.add(y)
     faiss.normalize_L2(q)
     similarity, idx = index.search(q, k=index.ntotal)
     ans_idx = idx[0][0]
@@ -80,7 +76,7 @@ if prompt := st.chat_input("What's your question?"):
 if st.session_state.messages[-1]["role"] != "assistant":
     with st.chat_message("assistant"):
         with st.spinner("Thinking..."):
-            ans_idx = find_answer(prompt, ques_vec, ans_vec)
+            ans_idx = find_answer(prompt, ques_vec)
             response = df["Answer"][ans_idx]
             st.write(response)
             
