@@ -1,3 +1,15 @@
+### Assignment guidance
+# The goal of this assignment is to create a word2vec-based question-answer chatbot application that should be able
+# to give the best answer based on vector search toward both question set and answer set. 
+# Our exercise only showed how to apply question set for vector search. You can follow the hints to generate the chatbot. 
+# What you need to submit for this assignment: an app url (You should publish your chatbot application on Streamlit Cloud. 
+# Your chatbot assignment will be evaluated based on query questions listed as below:
+# (1) A year before improving and popularizing the electrophorus, what did Volta become?
+# (2) Does the Hymenoptera order include ants?
+# (3) Who invented the voltaic pile?
+# (4) Does Avogadro Law talk about the relationship between same volume masses?
+###
+
 import streamlit as st
 import pandas as pd
 import faiss
@@ -7,16 +19,14 @@ import numpy as np
 # load question-answer dataset 
 df = pd.read_csv("data/Question_Answer_Dataset_v1.2_S10.csv")
 
-# Load pre-trained Word2Vec model
+# load question and answer vectors generated from pre-trained word2vec model
+vector = ...
+ques_vec = ...
+ans_vec = ...
+
+# load th trained word2vec model 
+# Hint: You should use the word2vec model pre-trained with both question and answer sets.
 trained_w2v = gensim.models.Word2Vec.load("data/w2v.model")
-
-# Generate question vectors
-ques_vec = [trained_w2v.wv[word] for word in df["Question"]]
-ques_vec = np.array(ques_vec)
-
-# Generate answer vectors
-ans_vec = [trained_w2v.wv[word] for word in df["Answer"]]
-ans_vec = np.array(ans_vec)
 
 # App title
 st.set_page_config(page_title="Word2vec Question and Answer Chatbot")
@@ -64,6 +74,7 @@ def find_answer(qr_sentence, ques_vec, ans_vec):
 
     return ans_idx
 
+
 # User-provided prompt
 if prompt := st.chat_input("What's your question?"):
     st.session_state.messages.append({"role": "user", "content": prompt})
@@ -74,9 +85,10 @@ if prompt := st.chat_input("What's your question?"):
 if st.session_state.messages[-1]["role"] != "assistant":
     with st.chat_message("assistant"):
         with st.spinner("Thinking..."):
-            ans_idx = find_answer(prompt, ques_vec, ans_vec)
+            ans_idx = find_answer(prompt, ques_vec)
             response = df["Answer"][ans_idx]
             st.write(response)
             
     message = {"role": "assistant", "content": response}
     st.session_state.messages.append(message)
+
